@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from './utils/useApi.hook';
 import { ProductsClient } from './api/clients/productsClient';
 
@@ -6,8 +6,14 @@ export const ApiContext = React.createContext();
 
 export const ApiProvider = ({ children }) => {
     const [cart, setCart] = useState([]);
+    const [cartItemCount, setCartItemCount] = useState(0);
     const { getProducts } = ProductsClient;
     const productList = useApi(getProducts);
+
+    useEffect(() => {
+        const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
+        setCartItemCount(itemCount);
+    }, [cart]);
 
     const addToCart = (product) => {
         if (cart.some((item) => item.title === product.title)) {
@@ -37,5 +43,9 @@ export const ApiProvider = ({ children }) => {
         setCart(cart.filter((item) => item.title !== title));
     };
 
-    return <ApiContext.Provider value={{ productList, cart, addToCart, updateQuantity, deleteFromCart }}>{children}</ApiContext.Provider>;
+    return (
+        <ApiContext.Provider value={{ productList, cart, cartItemCount, addToCart, updateQuantity, deleteFromCart }}>
+            {children}
+        </ApiContext.Provider>
+    );
 };
